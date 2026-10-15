@@ -1,6 +1,12 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: '/api', timeout: 30000 })
+// In production (Vercel), calls go to the Render backend.
+// In local dev, Vite proxy forwards /api → localhost:8000.
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL + '/api'
+  : '/api'
+
+const api = axios.create({ baseURL: BASE_URL, timeout: 30000 })
 
 export const getHealth     = ()       => api.get('/health')
 export const getFilters    = ()       => api.get('/filters-options')
