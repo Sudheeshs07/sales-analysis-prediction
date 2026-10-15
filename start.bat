@@ -8,32 +8,36 @@ echo  =====================================================
 echo   Sales Analysis & Future Sales Prediction App
 echo  =====================================================
 echo.
-:: Ensure we run from repo root (script location)
-cd /d "%~dp0"
-:: Check Python
+
+set "ROOT=%~dp0"
+set "BACKEND_DIR=%ROOT%backend"
+set "FRONTEND_DIR=%ROOT%frontend"
+
+:: Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
     echo  ERROR: Python not found. Install from https://python.org
     pause & exit /b
 )
-:: Check Node (for frontend)
+
+:: Check Node (for frontend)
 node --version >nul 2>&1
 if errorlevel 1 (
     echo  WARNING: Node.js not found. Frontend will not start automatically.
-    set NODE_OK=0
+    set "NODE_OK=0"
 ) else (
-    set NODE_OK=1
+    set "NODE_OK=1"
 )
-:: Backend: create venv (if missing), install deps and start uvicorn in a new window
+
 echo.
 echo  Starting backend in a new terminal...
-start "Backend" cmd /k "cd /d "%~dp0backend" && if not exist .venv (python -m venv .venv) && call .venv\Scripts\activate && pip install -r requirements.txt && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
-:: Give backend a few seconds to boot, then open browser to frontend (if available)
+start "Backend" /D "%BACKEND_DIR%" cmd /k "if not exist .venv (python -m venv .venv) && call .venv\Scripts\activate && pip install -r requirements.txt && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
 echo.
 echo  Starting frontend (if Node.js is available)...
 if "%NODE_OK%"=="1" (
-    start "Frontend" cmd /k "cd /d "%~dp0frontend" && npm install && npm run dev"
-    timeout /t 3 /nobreak >nul
+    start "Frontend" /D "%FRONTEND_DIR%" cmd /k "npm install && npm run dev"
+    timeout /t 5 /nobreak >nul
     echo  Opening browser at http://localhost:3000 ...
     start "" "http://localhost:3000"
 ) else (
@@ -45,6 +49,7 @@ if "%NODE_OK%"=="1" (
 )
 
 echo.
+echo  Waiting for startup to complete...
 echo  To stop the servers, close the Backend and Frontend terminal windows.
 echo.
 pause
